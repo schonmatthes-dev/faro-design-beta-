@@ -9,17 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Projektordner finden
+      - name: Ordner wieder aufbauen
         run: |
-          FILE=$(find . -name generate_textures.py -path "*tools*" | head -n 1)
-          if [ -z "$FILE" ]; then
-            echo "FEHLER: generate_textures.py wurde nicht hochgeladen. Diese Dateien liegen im Repository:"
-            find . -not -path './.git/*' -type f | head -60
-            exit 1
-          fi
-          DIR=$(dirname "$(dirname "$FILE")")
-          echo "Projektordner: $DIR"
-          echo "DIR=$DIR" >> $GITHUB_ENV
+          mkdir -p tools src/main/java/de/farodesign src/main/resources/assets/farodesign/lang
+          mv -f generate_textures.py tools/ || true
+          mv -f *.java src/main/java/de/farodesign/ || true
+          mv -f fabric.mod.json src/main/resources/ || true
+          mv -f en_us.json de_de.json src/main/resources/assets/farodesign/lang/ || true
+          find . -not -path './.git/*' -type f | sort
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -28,7 +25,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Texturen erzeugen
-        working-directory: ${{ env.DIR }}
         run: |
           pip install pillow
           python tools/generate_textures.py
@@ -36,12 +32,10 @@ jobs:
         with:
           gradle-version: 8.14.3
       - name: Jar bauen
-        working-directory: ${{ env.DIR }}
         run: gradle build --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: Faro-Design-jar
           path: |
-            ${{ env.DIR }}/build/libs/*.jar
-            !${{ env.DIR }}/build/libs/*-sources.jar
-            
+            build/libs/*.jar
+            !build/libs/*-sources.jar
