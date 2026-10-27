@@ -30,7 +30,7 @@ jobs:
           python tools/generate_textures.py
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.14.3
+          gradle-version: 9.2.0
       - name: Jar bauen
         run: gradle build --no-daemon
       - uses: actions/upload-artifact@v4
